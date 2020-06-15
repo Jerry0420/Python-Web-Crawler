@@ -1,7 +1,8 @@
 import requests
 from enum import Enum
-from userAgents import OS, Browser, get_user_agent
+from .user_agents import OS, Browser, get_user_agent
 import time
+from .proxies import get_proxy
 
 class HTTPMethods(Enum):
     GET = "GET"
@@ -17,16 +18,17 @@ class ContentType(Enum):
 
 default_headers = {
     "Accept": 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    "Accept-Encoding": "gzip, deflate, sdch",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3",
     "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Accept-Language": "zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4"
+    "Upgrade-Insecure-Requests": "1"
 }
 
 class RequestUtil:
 
-    def __init__(self, retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, os=OS.MACOS.value, browser=Browser.CHROME.value):
+    def __init__(self, logger=None, main_page_url="", retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, proxy_countries=None, os=OS.MACOS.value, browser=Browser.CHROME.value):
         self.session = requests.Session()
+        self.main_page_url = main_page_url
         self.retry_times = retry_times
         self.timeout = timeout
         self.sleep_seconds = sleep_seconds
@@ -34,20 +36,32 @@ class RequestUtil:
         self.browser = browser
         self.headers = default_headers if default_headers else {}
         self.headers['user-agent'] = get_user_agent(os, browser)
+
+        self.logger = logger
         
         if isinstance(headers, str):
-            # headers = self.__class__.__get_cookies_dict_from_string(headers)
-            pass
+            headers = self.__class__.__get_headers_dict_from_string(headers)
         self.headers.update(headers)
 
         self.cookies = self.__class__.__get_cookies_dict_from_string(cookies) if isinstance(cookies, str) else cookies
+
+        self.proxy = None
+        self.proxy_countries = proxy_countries
+        if proxy_countries:
+            self.proxy = get_proxy(proxy_countries)
 
     def reset(self):
         time.sleep(self.sleep_seconds)
         self.session.close()
         self.session = requests.session()
-        self.headers['user-agent'] = get_user_agent(os, browser)
-        # init cookie
+        self.headers['user-agent'] = get_user_agent(self.os, self.browser)
+        if self.proxy_countries:
+            self.proxy = get_proxy(self.proxy_countries)
+        self.init_cookie()
+
+    def init_cookie(self):
+        # 因為要初始化 cookie，所以用原本的 requests，不用客製化的
+        self.session.get(self.main_page_url)
 
     @classmethod
     def __get_cookies_dict_from_string(cls, cookies_string):
@@ -57,12 +71,14 @@ class RequestUtil:
             cookies[key]=value
         return cookies
 
-    # def __get_headers_dict_from_string(self, headers_string):
-    #     headers = {}
-    #     for line in headers_string.split(';'):
-    #         key, value = line.strip().split('=', 1)
-    #         headers[key]=value
-    #     return headers
+    @classmethod
+    def __get_headers_dict_from_string(cls, headers_string):
+        headers = {}
+        for line in headers_string.split('\n'):
+            splitted_header = line.strip().split(':')
+            if len(splitted_header) == 2:
+                headers[splitted_header[0]] = splitted_header[1]
+        return headers
 
     def get(self, url, query_strings=None, headers=None, cookies=None, referer=None, allow_redirects=True, json_response=False, retry_function=None):
         response = self.__request(HTTPMethods.GET, url, query_strings, body=None, json_body=None, headers=headers, cookies=cookies, referer=referer, allow_redirects=allow_redirects, json_response=json_response, retry_function=retry_function)
@@ -87,13 +103,12 @@ class RequestUtil:
         
         if headers:
             if isinstance(headers, str):
-                # headers = self.__get_cookies_dict_from_string(headers)
-                pass
+                headers = self.__class__.__get_headers_dict_from_string(headers)
             self.headers.update(headers)
 
         if cookies:
             if isinstance(cookies, str):
-                cookies = self.__get_cookies_dict_from_string(cookies)
+                cookies = self.__class__.__get_cookies_dict_from_string(cookies)
             self.cookies.update(cookies)
 
         retry_function = retry_function if retry_function else self.__retry_function
@@ -109,7 +124,8 @@ class RequestUtil:
                     headers=self.headers,
                     cookies=self.cookies,
                     timeout=self.timeout,
-                    allow_redirects=allow_redirects
+                    allow_redirects=allow_redirects,
+                    proxies=self.proxy
                 )
                 if not retry_function(response):
                     raise
@@ -120,10 +136,3 @@ class RequestUtil:
         else:
             response = None
         return response
-
-if __name__ == "__main__":
-    session = RequestUtil()
-    # http://localhost:8080/
-    # https://httpbin.org/get
-    r = session.get("https://httpbin.org/get", json_response=True)
-    print(r)
