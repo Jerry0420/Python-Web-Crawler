@@ -5,8 +5,9 @@ class BaseCrawler:
 
     database = None
 
-    def __init__(self, process_num=3, logger=None):
+    def __init__(self, process_num=3, logger=None, session):
         self.logger = logger
+        self.session = session
         self.process_num = process_num
         self.collected_data = []
 
@@ -16,11 +17,11 @@ class BaseCrawler:
             self.save()
             self.collected_data = []
 
-    def __del__(self):
-        self.save()
-
     def save(self):
-        self.__class__.database.save(self.collected_data)
+        try:
+            self.__class__.database.save(self.collected_data)
+        except Exception as error:
+            pass
     
     def map(self, function, inputs):
         total_count = 0
