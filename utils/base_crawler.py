@@ -3,24 +3,24 @@ from multiprocessing import Pool
 
 class BaseCrawler:
 
-    def __init__(self, process_num=3, path='', table=None, file_name='', logger=None):
+    database = None
+
+    def __init__(self, process_num=3, logger=None):
         self.logger = logger
-        if not table:
-            # json....
-            self.database = None
-        else:
-            self.database = DatabaseUtil(table=table, path=path, file_name=file_name, logger=self.logger)
-        self.collected_data = []
         self.process_num = process_num
+        self.collected_data = []
 
     def append(self, data):
         self.collected_data.extend(data)
-        if len(self.collected_data) >= 5000:
+        if len(self.collected_data) >= 1000:
             self.save()
             self.collected_data = []
 
+    def __del__(self):
+        self.save()
+
     def save(self):
-        self.database.save(self.collected_data)
+        self.__class__.database.save(self.collected_data)
     
     def map(self, function, inputs):
         total_count = 0
@@ -29,4 +29,6 @@ class BaseCrawler:
         for result in results:
             total_count += len(result)
             self.append(result)
+        pool.close()
+        pool.join()
         return total_count

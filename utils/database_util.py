@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 class DatabaseUtil:
     
-    def __init__(self, table, path='', file_name='', logger=None):
+    def __init__(self, table, path='', file_name=''):
         self.table = table
         self.path = path
         self.file_name = file_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now())
