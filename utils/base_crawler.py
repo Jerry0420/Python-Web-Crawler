@@ -4,24 +4,24 @@ from multiprocessing import Pool
 class BaseCrawler:
 
     database = None
+    logger = None
 
-    def __init__(self, process_num=3, logger=None, session):
-        self.logger = logger
-        self.session = session
+    def __init__(self, process_num=3, session=None):
         self.process_num = process_num
+        self.session = session
         self.collected_data = []
 
     def append(self, data):
         self.collected_data.extend(data)
         if len(self.collected_data) >= 1000:
             self.save()
-            self.collected_data = []
 
     def save(self):
         try:
             self.__class__.database.save(self.collected_data)
+            self.collected_data = []
         except Exception as error:
-            pass
+            self.logger.exception(error)
     
     def map(self, function, inputs):
         total_count = 0
@@ -30,6 +30,4 @@ class BaseCrawler:
         for result in results:
             total_count += len(result)
             self.append(result)
-        pool.close()
-        pool.join()
         return total_count

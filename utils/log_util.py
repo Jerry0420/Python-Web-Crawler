@@ -6,7 +6,7 @@ def init_log(path, logger_name):
     file_name = logger_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".log"
 
     logging.captureWarnings(True)
-    formatter = logging.Formatter('%(levelname)s | %(asctime)s | %(message)s', "%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter('%(levelname)s | %(asctime)s | %(process)d | %(message)s', "%Y-%m-%d %H:%M:%S")
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.INFO)
 
