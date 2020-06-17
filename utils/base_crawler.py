@@ -4,9 +4,8 @@ from multiprocessing import Pool
 class BaseCrawler:
 
     database = None
-    logger = None
 
-    def __init__(self, process_num=3, session=None):
+    def __init__(self, process_num=4, session=None):
         self.process_num = process_num
         self.session = session
         self.collected_data = []
@@ -17,11 +16,8 @@ class BaseCrawler:
             self.save()
 
     def save(self):
-        try:
-            self.__class__.database.save(self.collected_data)
-            self.collected_data = []
-        except Exception as error:
-            self.logger.exception(error)
+        self.__class__.database.save(self.collected_data)
+        self.collected_data = []
     
     def map(self, function, inputs):
         total_count = 0
