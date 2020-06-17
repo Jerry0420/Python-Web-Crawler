@@ -59,18 +59,18 @@ class JsonUtil:
 
     def save(self, data):
         origin_data = []
-
-        with open(self.file_name + '.json', 'r') as json_file:
-            try:
-                origin_data = json.load(json_file)
-            except Exception as error:
-                pass
         
-        with open(self.file_name + '_tmp.json', 'w') as json_file:
+        try:
+            with open(self.path + '/' + self.file_name + '.json', 'r') as json_file:
+                origin_data = json.load(json_file)
+        except Exception as error:
+            pass
+        
+        with open(self.path + '/' + self.file_name + '_tmp.json', 'w', encoding='utf-8') as json_file:
             try:
                 origin_data.extend(data)
-                json_file.write(json.dumps(origin_data))
-                os.rename(self.path + self.file_name + '_tmp.json', self.path + self.file_name + '.json')
+                json.dump(origin_data, json_file, ensure_ascii=False)
+                os.rename(self.path + '/' + self.file_name + '_tmp.json', self.path + '/' + self.file_name + '.json')
             except Exception as error:
                 self.logger.exception(error)
 
