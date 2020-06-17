@@ -39,10 +39,7 @@ class DatabaseUtil:
     def save(self, data):
         try:
             session = self.session
-            objs = []
-            for obj in data:
-                objs.append(self.table(**obj))
-            session.bulk_save_objects(objs)
+            session.bulk_insert_mappings(self.table, data)
             session.commit()
         except Exception as error:
             self.logger.exception(error)
