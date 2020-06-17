@@ -26,7 +26,7 @@ default_headers = {
 
 class RequestUtil:
 
-    def __init__(self, logger=None, main_page_url="", retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, proxy_countries=None, os=OS.MACOS.value, browser=Browser.CHROME.value):
+    def __init__(self, logger=None, main_page_url=None, retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, proxy_countries=None, os=OS.MACOS.value, browser=Browser.CHROME.value):
         self.session = requests.Session()
         self.main_page_url = main_page_url
         self.retry_times = retry_times
@@ -60,8 +60,9 @@ class RequestUtil:
         self.init_cookie()
 
     def init_cookie(self):
-        # 因為要初始化 cookie，所以用原本的 requests，不用客製化的
-        self.session.get(self.main_page_url)
+        if self.main_page_url:
+            # 因為要初始化 cookie，所以用原本的 requests，不用客製化的
+            self.session.get(self.main_page_url)
 
     @classmethod
     def __get_cookies_dict_from_string(cls, cookies_string):

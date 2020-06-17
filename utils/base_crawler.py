@@ -1,5 +1,11 @@
 from .database_util import DatabaseUtil
 from multiprocessing import Pool
+from enum import Enum
+
+class Parser(Enum):
+    LXML = 'lxml'
+    HTMLPARSER = 'html.parser'
+    HTML5LIB = 'html5lib'
 
 class BaseCrawler:
 

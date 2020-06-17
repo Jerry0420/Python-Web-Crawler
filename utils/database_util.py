@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-def init_database(table, path='', file_name='', logger=None):
+def init_database(table, path=os.getcwd(), file_name='', logger=None):
     if table:
         database = DatabaseUtil(table=table, path=path, file_name=file_name, logger=logger)
     else:

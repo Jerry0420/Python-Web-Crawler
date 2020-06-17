@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-def init_log(path, logger_name):
+def init_log(path=os.getcwd(), logger_name=''):
     file_name = logger_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".log"
 
     logging.captureWarnings(True)
