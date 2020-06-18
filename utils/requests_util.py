@@ -3,6 +3,9 @@ from enum import Enum
 from .user_agents import OS, Browser, get_user_agent
 import time
 from .proxies import get_proxy
+import logging
+
+logger = logging.getLogger()
 
 class HTTPMethods(Enum):
     GET = "GET"
@@ -26,7 +29,7 @@ default_headers = {
 
 class RequestUtil:
 
-    def __init__(self, logger=None, main_page_url=None, retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, proxy_countries=None, os=OS.MACOS.value, browser=Browser.CHROME.value):
+    def __init__(self, main_page_url=None, retry_times=5, sleep_seconds=30, default_headers_enable=True, headers={}, cookies={}, timeout=30, proxy_countries=None, os=OS.MACOS.value, browser=Browser.CHROME.value):
         self.session = requests.Session()
         self.main_page_url = main_page_url
         self.retry_times = retry_times
@@ -36,8 +39,6 @@ class RequestUtil:
         self.browser = browser
         self.headers = default_headers if default_headers else {}
         self.headers['user-agent'] = get_user_agent(os, browser)
-
-        self.logger = logger
         
         if isinstance(headers, str):
             headers = self.__class__.__get_headers_dict_from_string(headers)
@@ -95,7 +96,7 @@ class RequestUtil:
             if response.ok and response.content:
                 result = True
         except Exception as error:
-            self.logger.warning('Retry %s', response.url)
+            logger.warning('Retry %s', response.url)
         return result
 
     def __request(self, method, url, query_strings=None, body=None, json_body=None, headers=None, cookies=None, referer=None, allow_redirects=True, json_response=False, retry_function=None):
@@ -135,6 +136,6 @@ class RequestUtil:
             except Exception as error:
                 self.reset()
         else:
-            self.logger.warning('Retry and Fail of %s', url)
+            logger.warning('Retry and Fail of %s', url)
             response = None
         return response

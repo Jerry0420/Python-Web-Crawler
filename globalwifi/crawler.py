@@ -15,9 +15,9 @@ import argparse
 site_name = 'globalwifi'
 main_page_url = "https://sim.globalwifi.com.tw/"
 
-logger = init_log(logger_name=site_name)
-database = init_database(table=GlobalWifi, file_name=site_name, logger=logger)
-session = RequestUtil(logger=logger)
+logger = init_log(site_name=site_name)
+database = init_database(table=GlobalWifi, file_name=site_name)
+session = RequestUtil()
 
 class Crawler(BaseCrawler):
 

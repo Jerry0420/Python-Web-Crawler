@@ -2,12 +2,12 @@ import logging
 import os
 from datetime import datetime
 
-def init_log(path=os.getcwd(), logger_name=''):
-    file_name = logger_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".log"
+def init_log(path=os.getcwd(), site_name=''):
+    file_name = site_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".log"
 
     logging.captureWarnings(True)
     formatter = logging.Formatter('%(levelname)s | %(asctime)s | %(process)d | %(filename)s:%(lineno)d | %(message)s', "%Y-%m-%d %H:%M:%S")
-    logger = logging.getLogger(logger_name)
+    logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
     if not os.path.exists(path + '/logs'):

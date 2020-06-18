@@ -4,21 +4,23 @@ import json
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import logging
 
-def init_database(table, path=os.getcwd(), file_name='', logger=None):
+logger = logging.getLogger()
+
+def init_database(table, path=os.getcwd(), file_name=''):
     if table:
-        database = DatabaseUtil(table=table, path=path, file_name=file_name, logger=logger)
+        database = DatabaseUtil(table=table, path=path, file_name=file_name)
     else:
-        database = JsonUtil(path=path, file_name=file_name, logger=logger)
+        database = JsonUtil(path=path, file_name=file_name)
     return database
 
 class DatabaseUtil:
     
-    def __init__(self, table, path='', file_name='', logger=None):
+    def __init__(self, table, path='', file_name=''):
         self.table = table
         self.path = path + '/data'
         self.file_name = file_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".sqlite3"
-        self.logger = logger
 
         try:
             if not os.path.exists(self.path):
@@ -27,7 +29,7 @@ class DatabaseUtil:
             self.engine = create_engine('sqlite:///{}'.format(self.path + '/' + self.file_name))
             self.table.metadata.create_all(self.engine)
         except Exception as error:
-            self.logger.exception(error)
+            logger.exception(error)
             exit()
 
     @property
@@ -42,19 +44,18 @@ class DatabaseUtil:
             session.bulk_insert_mappings(self.table, data)
             session.commit()
         except Exception as error:
-            self.logger.exception(error)
+            logger.exception(error)
 
 class JsonUtil:
-    def __init__(self, path='', file_name='', logger=None):
+    def __init__(self, path='', file_name=''):
         self.path = path + '/data'
         self.file_name = file_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now())
-        self.logger = logger
 
         try:
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
         except Exception as error:
-            self.logger.exception(error)
+            logger.exception(error)
             exit()
 
     def save(self, data):
@@ -72,6 +73,6 @@ class JsonUtil:
                 json.dump(origin_data, json_file, ensure_ascii=False)
                 os.rename(self.path + '/' + self.file_name + '_tmp.json', self.path + '/' + self.file_name + '.json')
             except Exception as error:
-                self.logger.exception(error)
+                logger.exception(error)
 
         
