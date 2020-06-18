@@ -95,7 +95,7 @@ class RequestUtil:
             if response.ok and response.content:
                 result = True
         except Exception as error:
-            self.logger.warning('Retry %s', url)
+            self.logger.warning('Retry %s', response.url)
         return result
 
     def __request(self, method, url, query_strings=None, body=None, json_body=None, headers=None, cookies=None, referer=None, allow_redirects=True, json_response=False, retry_function=None):
