@@ -1,6 +1,9 @@
 from .database_util import DatabaseUtil
 from multiprocessing import Pool
 from enum import Enum
+import logging
+
+logger = logging.getLogger()
 
 class Parser(Enum):
     LXML = 'lxml'
@@ -22,6 +25,7 @@ class BaseCrawler:
             self.save()
 
     def save(self):
+        logger.info("Saved %s into database", len(self.collected_data))
         self.__class__.database.save(self.collected_data)
         self.collected_data = []
     
@@ -30,6 +34,7 @@ class BaseCrawler:
         pool = Pool(processes=self.process_num)
         results = pool.imap_unordered(function, inputs)
         for result in results:
-            total_count += len(result)
-            self.append(result)
+            if len(result):
+                total_count += len(result)
+                self.append(result)
         return total_count
