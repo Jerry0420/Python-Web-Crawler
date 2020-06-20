@@ -17,9 +17,9 @@ site_name = 'fragrantica'
 main_page_url = "https://www.fragrantica.com/"
 
 logger = init_log(site_name=site_name)
-database = init_database(fields=Fragrantica, file_name=site_name)
+# database = init_database(fields=Fragrantica, file_name=site_name)
 # database = init_database(fields=['title'], database_type=DataBaseType.CSV, file_name=site_name)
-# database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
 session = RequestUtil()
 
 class Crawler(BaseCrawler):
@@ -33,7 +33,7 @@ class Crawler(BaseCrawler):
         result = []
         query_strings = (
             ('x-algolia-application-id', 'FGVI612DFZ'),
-            ('x-algolia-api-key', 'NDI2YWY5NjgyY2FjOWE0MTkyODI2YTI4OGZhNmRkOTE4ZWUxMjBhMTA3NzFkMGE1MDVkZmViOGQwZjcwNmYxOXZhbGlkVW50aWw9MTU5MzQyNjgzNQ=='),
+            ('x-algolia-api-key', 'MTc1OWQxMjFlODAyZWViMTUzOWEzMDBiMmNhMmJkYmZkOTg1ODI5YmIxY2FiZWQ2OTU5ODI0OTc1ODdmMTcxMXZhbGlkVW50aWw9MTU5MzUwNTMyNQ=='),
         )
 
         body = '{"requests":[{"indexName":"fragrantica_perfumes","params":'
@@ -43,11 +43,24 @@ class Crawler(BaseCrawler):
         url = "https://fgvi612dfz-3.algolianet.com/1/indexes/*/queries"
 
         response = self.session.post(url=url, query_strings=query_strings, body=body, json_response=True)
-        try:
-            print(response['results'][0]['hits'][0])
-        except Exception as error:
-            logger.exception(error)
         
+        if 'results' in response and response['results']:
+            hits = response['results'][0]
+            if 'hits' in hits and hits['hits']:
+                for hit in hits['hits']:
+                    title = hit.get('naslov', None)
+                    brand = hit.get('dizajner', None)
+                    product_id = hit.get('objectID', None)
+                    url = hit.get('url', None)
+                    if url and 'EN' in url:
+                        url = url['EN'][0]
+                    item = {
+                        'title': title,
+                        'brand': brand, 
+                        'product_id': product_id, 
+                        'url': url, 
+                    }
+                    result.append(item)
         return result
     
     def loop_perfumers(self, perfumer):
@@ -58,8 +71,11 @@ class Crawler(BaseCrawler):
             try:
                 items = self.job(perfumer, page)
                 results.extend(items)
-                logger.info('Got %s of %s in page %s', len(items), perfumer, page)
-                page += 1
+                if len(items):
+                    logger.info('Got %s of %s in page %s', len(items), perfumer, page)
+                    page += 1
+                else:
+                    break
             except Exception as error:
                 logger.exception(error)
                 break
@@ -80,7 +96,7 @@ class Crawler(BaseCrawler):
 
     def start_crawler(self):
         # perfumers = self.collect_perfumers()
-        perfumers = ['Alberto Morillas']
+        perfumers = ['Nisrine Bouazzaoui Grillie']
         try:
             count = self.map(self.loop_perfumers, perfumers)
             logger.info('Saved %s items', count)
