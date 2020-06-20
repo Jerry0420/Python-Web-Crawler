@@ -12,7 +12,6 @@ from table import Fragrantica
 from bs4 import BeautifulSoup
 import argparse
 import json
-from selenium import webdriver
 
 site_name = 'fragrantica'
 main_page_url = "https://www.fragrantica.com/"
@@ -42,36 +41,33 @@ class Crawler(BaseCrawler):
             })
         logger.info('Got %s items', len(result))
         return result
+    
+    def loop_perfumers(self, perfumer):
+        perfumer = perfumer
+        
 
     def collect_perfumers(self):
-        # url = "https://www.fragrantica.asia/noses/"
-        # document = self.session.get(url)
-        # document = BeautifulSoup(document, Parser.LXML.value)
-        # contents = document.select('div.cell.small-12.medium-4')
-        # perfumers = set()
-        # for content in contents:
-        #     perfumers.add(content.a.text)
-        # with open('perfumers.json','w') as f:
-        #     json.dump(list(perfumers), f)
-        # logger.info("Collected %s perfumers", len(perfumers))
-        # return list(perfumers)
-
-        url = "https://www.fragrantica.com/perfume/Chanel/Coco-Mademoiselle-611.html"
-        # driver = webdriver.Firefox()
-        # driver.get(url)
-        # driver.close()
-
+        url = "https://www.fragrantica.asia/noses/"
         document = self.session.get(url)
-        document = BeautifulSoup(document.decode('utf-8', 'ignore'), Parser.HTMLPARSER.value)
-        print(document)
-        # contents = document.select('span.rtgNote')
-        # print(contents)
-        # for content in contents:
-        #     print(content)
-
+        document = BeautifulSoup(document, Parser.LXML.value)
+        contents = document.select('div.cell.small-12.medium-4')
+        perfumers = set()
+        for content in contents:
+            perfumers.add(content.a.text)
+        with open('perfumers.json','w') as f:
+            json.dump(list(perfumers), f)
+        logger.info("Collected %s perfumers", len(perfumers))
+        return list(perfumers)
 
     def start_crawler(self):
         perfumers = self.collect_perfumers()
+        try:
+            count = self.map(self.job, perfumers)
+            logger.info('Saved %s items', count)
+            self.save()
+        except Exception as error:
+            logger.exception(error)
+            self.save()
         
 
 if __name__ == "__main__":
