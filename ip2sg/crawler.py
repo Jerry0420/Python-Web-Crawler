@@ -3,11 +3,10 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
-from utils.requests_util import RequestUtil
+from utils.requests_util import RequestUtil, OS, Browser
 from utils.log_util import init_log, logging
 from utils.base_crawler import BaseCrawler, Parser
 from utils.database_util import init_database, DataBaseType
-from api_keys import get_api_key
 
 from bs4 import BeautifulSoup
 import argparse
@@ -19,7 +18,7 @@ main_page_url = "https://www.ip2.sg/RPS/WP/CM/SearchFastP.aspx"
 
 logger = init_log(site_name=site_name)
 database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
-session = RequestUtil(timeout=10, sleep_seconds=0)
+session = RequestUtil(main_page_url=main_page_url, timeout=120, sleep_seconds=10, retry_times=3, os=OS.MACOS, browser=Browser.FIREFOX.value)
 
 class Crawler(BaseCrawler):
 
@@ -28,7 +27,7 @@ class Crawler(BaseCrawler):
     def __init__(self, process_num, session):
         super().__init__(process_num=process_num, session=session)
 
-    def collect_perfumes(self, brand, page):
+    def collect_items(self, input, page):
         perfumes = []
         failed_brand = None
         api_key = get_api_key()
@@ -67,71 +66,43 @@ class Crawler(BaseCrawler):
             except Exception as error:
                 logger.warning('Fail to get item ', result)
                 continue
-        return perfumes, failed_brand
+        logger.info('Got %s items at pgae %s ', len(items), page)
+        return items, total_page
     
-    def loop_brand(self, brand):
-        page = 0
-        perfumes_of_brand = []
-        failed_brand = None
+    def loop_pages(self, input):
+        page = 1
+        results = []
+        total_page = 0
         while True:
             try:
-                perfumes_of_one_page, failed_brand = self.collect_perfumes(brand, page)
-                perfumes_of_brand.extend(perfumes_of_one_page)
-                if len(perfumes_of_one_page):
+                items, total_page = self.collect_items(input, page)
+                results.extend(items)
+                if page < total_page:
                     page += 1
                 else:
                     break
             except Exception as error:
                 logger.exception(error)
                 break
-        msg = "https://www.fragrantica.com/designers/{}.html".format(brand)
-        logger.info('Got %s of %s  %s', len(perfumes_of_brand), msg, brand)
-        return perfumes_of_brand, failed_brand
+        for result in results:
+            self.append(result)
+        logger.info('Got %s of %s ', len(results), input)
+        return len(results)
 
-    def collect_brands(self):
-        url = "https://www.fragrantica.asia/designer/"
-        document = self.session.get(url)
-        document = BeautifulSoup(document, Parser.LXML.value)
-        contents = document.select('div#ndalphabet a')
-        urls = []
-        for content in contents:
-            url = 'https://www.fragrantica.asia' + content['href']
-            urls.append(url)
-        
-        brands = set()
-        for url in urls:
-            document = self.session.get(url)
-            document = BeautifulSoup(document, Parser.LXML.value)
-            contents = document.select('div.nduList a')
-            for content in contents:
-                brands.add(content.text.strip())
-            logger.info("Collected %s brands of %s", len(contents), url)
-        with open('brands.json','w') as f:
-            json.dump(list(brands), f)
-        
-        logger.info("Collected %s brands", len(brands))
-        return list(brands)
-
-    def start_crawler(self):
-        # brands = ["Rose & Co Manchester"]
-        # brands = self.collect_brands()
-        
-        brands = []
-        with open('other_info.json','r') as f:
-            brands = json.loads(f.read())
-        
+    def start_crawler(self, input):
         total_count = 0
         try:
-            total_count = self.map(self.loop_brand, brands)
+            self.session.init_cookie()
+            total_count = self.loop_pages(input)
         except:
             pass
         finally:
             self.save()
-            logger.info('Total Got %s perfumes', total_count)
+            logger.info('Total Got %s items', total_count)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=10)
     args = parser.parse_args()
     crawler = Crawler(process_num=args.processes, session=session)
-    crawler.start_crawler()
+    crawler.start_crawler("math")

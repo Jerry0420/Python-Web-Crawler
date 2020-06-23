@@ -7,6 +7,7 @@ class OS(Enum):
 
 class Browser(Enum):
     CHROME = "chrome"
+    FIREFOX = "firefox"
 
 def get_user_agent(os, browser):
     user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
