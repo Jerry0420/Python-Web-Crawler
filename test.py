@@ -1,24 +1,12 @@
 from bs4 import BeautifulSoup
 import requests
 
+# rnye2e55tff1jm45n4johz55
+# 5its2455xcq3xovzr50izvqp
 cookies = {
-    
-    'visid_incap_454533': 'gj427EYoQOiNbRGGrQumERvC8l4AAAAAQUIPAAAAAACcNGcQCIRM3C8+sLk2ShRb',
-    
-    # 'incap_ses_932_454533': 'H52NJV1Mh3Bz7XpHGSHvDJO48l4AAAAASjrl4CA80ShA2/tjDOseHQ==',
-    
-    # 'ASP.NET_SessionId': '5its2455xcq3xovzr50izvqp',
-    
-    # '_sp_id.d5fe': 'ddf608e6-75ec-4d8b-a54f-eb503dfbcd56.1592874976.2.1592902675.1592874976.00bf788e-de01-46f3-b32c-11e95b6bc68d',
-    
-    # 'AMCV_DF38E5285913269B0A495E5A%40AdobeOrg': '-1303530583%7CMCIDTS%7C18437%7CMCMID%7C54209626291174910991989563787399554200%7CMCAAMLH-1593507475%7C11%7CMCAAMB-1593507475%7C6G1ynYcLPuiQxYZrsz_pkqfLG9yMXBpb2zX5dvJdYQJzPXImdj0y%7CMCOPTOUT-1592909875s%7CNONE%7CMCSYNCSOP%7C411-18444%7CvVersion%7C3.3.0',
-    
-    # 'AMCVS_DF38E5285913269B0A495E5A%40AdobeOrg': '1',
-    
-    # 's_ppv': 'https%253A%2F%2Fwww.ip2.sg%2FRPS%2FRPSLogin%2FSPLogin.aspx%253FReturnUrl%253D%25252f_layouts%25252fAuthenticate.aspx%25253fSource%25253d%2525252FRPS%2525252FRPSLogin%2525252FSPHome%2525252Easpx%2526Source%253D%25252FRPS%25252FRPSLogin%25252FSPHome%25252Easpx%2C70%2C70%2C962',
-    
-    'my_session': '!FNzowRQv0sCxWCS0fT5uGUomWtHPkr3N5sLahtwN78GHfW/VtnUh1oeFL19u623YmNswze0gxgWx',
+    'ASP.NET_SessionId': 'ltcxfh55eimywaun0tvf5nbq',
 }
+
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0',
@@ -29,7 +17,6 @@ headers = {
     'Origin': 'https://www.ip2.sg',
     'Connection': 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
-    'TE': 'Trailers',
 }
 
 data = {
@@ -74,21 +61,17 @@ response1 = requests.get('https://www.ip2.sg/RPS/WP/CM/SearchFastP.aspx', header
 })
 print(response1.cookies)
 
-# response2 = requests.get('https://www.ip2.sg/RPS/WP/CM/SearchFastP.aspx', headers={
-#     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0',
-#     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-#     'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-#     'DNT': '1',
-#     'Connection': 'keep-alive',
-#     'Upgrade-Insecure-Requests': '1',
-#     'Cache-Control': 'max-age=0',
-#     'TE': 'Trailers',
-# }, cookies=response1.cookies)
-# print(response2.cookies)
+response1 = requests.get('https://www.ip2.sg/RPS/WP/CM/SearchFastP.aspx', headers={
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+}, cookies=response1.cookies)
 
 response = requests.post(url='https://www.ip2.sg/RPS/WP/CM/SearchFastP.aspx', headers=headers, cookies=cookies, data=data)
 document = BeautifulSoup(response.content, 'lxml')
-print(document)
 odds = document.select('tr.odd')
 evens = document.select('tr.even')
 print(len(odds) + len(evens))
