@@ -16,6 +16,7 @@ cookies = {
     # 'AMCVS_DF38E5285913269B0A495E5A%40AdobeOrg': '1',
     
     # 's_ppv': 'https%253A%2F%2Fwww.ip2.sg%2FRPS%2FRPSLogin%2FSPLogin.aspx%253FReturnUrl%253D%25252f_layouts%25252fAuthenticate.aspx%25253fSource%25253d%2525252FRPS%2525252FRPSLogin%2525252FSPHome%2525252Easpx%2526Source%253D%25252FRPS%25252FRPSLogin%25252FSPHome%25252Easpx%2C70%2C70%2C962',
+    
     'my_session': '!FNzowRQv0sCxWCS0fT5uGUomWtHPkr3N5sLahtwN78GHfW/VtnUh1oeFL19u623YmNswze0gxgWx',
 }
 
