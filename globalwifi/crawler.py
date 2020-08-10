@@ -4,9 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from utils.requests_util import RequestUtil
-from utils.log_util import init_log, logging
-from utils.base_crawler import BaseCrawler
-from utils.database_util import init_database, DataBaseType
+from utils.base_crawler import init_log, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
 from table import GlobalWifi 
 
 from bs4 import BeautifulSoup
@@ -28,9 +26,9 @@ class Crawler(BaseCrawler):
     def __init__(self, process_num, session):
         super().__init__(process_num=process_num, session=session)
 
-    def job(self, url):
+    def get_page(self, url):
         document = self.session.get(url)
-        document = BeautifulSoup(document, 'lxml')
+        document = BeautifulSoup(document, Parser.LXML.value)
         contents = document.select('ul.boxify-container li.boxify-item.product-item')
         result = []
         for content in contents:
@@ -41,11 +39,30 @@ class Crawler(BaseCrawler):
         logger.info('Got %s items', len(result))
         return result
 
+    def loop_page(self, url):
+        page = 1
+        items_all = []
+        failed_brand = None
+        while True:
+            try:
+                items_per_page = self.get_page(url + '?page=' + str(page))
+                items_all.extend(items_per_page)
+                if len(items_per_page):
+                    page += 1
+                else:
+                    break
+            except Exception as error:
+                logger.exception(error)
+                break
+        logger.info('Got %s of %s', len(items_per_page), url)
+        return items_all
+
     def start_crawler(self, inputs):
+        pool = Pool(processes=self.process_num)
         try:
-            count = self.map(self.job, inputs)
-            logger.info('Saved %s items', count)
+            all_next_info = self.map(pool, self.loop_page, inputs)
             self.save()
+            logger.info('Saved %s items', self.total_count)
         except Exception as error:
             logger.exception(error)
             self.save()
@@ -54,10 +71,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=4)
     args = parser.parse_args()
+    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
     crawler = Crawler(process_num=args.processes, session=session)
-    crawler.start_crawler([
-        'https://sim.globalwifi.com.tw/categories/5b307bf98d1db966a70002d8',
-        'https://sim.globalwifi.com.tw/categories/%E7%86%B1%E9%96%80%E5%95%86%E5%93%81',
-        'https://sim.globalwifi.com.tw/categories/oceania-sim',
-        'https://sim.globalwifi.com.tw/categories/travel-accessories'
-    ])
+    crawler.start_crawler(urls)
