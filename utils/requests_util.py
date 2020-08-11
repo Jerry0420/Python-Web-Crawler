@@ -63,7 +63,7 @@ class RequestUtil:
     def init_cookie(self):
         if self.main_page_url:
             # 因為要初始化 cookie，所以用原本的 requests，不用客製化的
-            self.session.get(self.main_page_url)
+            self.session.get(self.main_page_url, headers=self.headers)
 
     @classmethod
     def __get_cookies_dict_from_string(cls, cookies_string):
