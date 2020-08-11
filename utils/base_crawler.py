@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from enum import Enum
 import json
 from collections import namedtuple
+import time
 
 logger = logging.getLogger()
 
@@ -46,6 +47,7 @@ class BaseCrawler:
         self.loop.stop()
         self.loop.run_forever()
         self.loop.close()
+        time.sleep(5)
 
     def map(self, pool, function, inputs):
         all_next_info = []
