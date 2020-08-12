@@ -21,5 +21,4 @@ def init_log(path=os.getcwd(), site_name=''):
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
     return logger

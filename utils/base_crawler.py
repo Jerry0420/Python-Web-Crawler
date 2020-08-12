@@ -47,7 +47,6 @@ class BaseCrawler:
         self.loop.stop()
         self.loop.run_forever()
         self.loop.close()
-        time.sleep(5)
 
     def map(self, pool, function, inputs):
         all_next_info = []

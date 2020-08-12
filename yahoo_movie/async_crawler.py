@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import re
 from datetime import datetime
+import time
 
 site_name = 'yahoo_movie'
 main_page_url = "https://movies.yahoo.com.tw/index.html"
@@ -106,8 +107,8 @@ class AsyncCrawler(BaseCrawler):
         response = await self.session.get(url)
         return response
 
-    def start_crawler(self, upper_limit):
-        inputs_chunks = split_chunk([self.request_page("https://movies.yahoo.com.tw/movieinfo_main.html/id={}".format(i)) for i in range(1, upper_limit)], 100)
+    def start_crawler(self, upper_limit, chunk_size):
+        inputs_chunks = split_chunk([self.request_page("https://movies.yahoo.com.tw/movieinfo_main.html/id={}".format(i)) for i in range(1, upper_limit)], chunk_size)
         pool = Pool(processes=self.process_num)
         try:
             for inputs_chunk in inputs_chunks:
@@ -124,6 +125,7 @@ class AsyncCrawler(BaseCrawler):
             self.loop.run_until_complete(self.session.close())
             self.loop.close()
             logger.info('Saved %s items', self.total_count)
+            time.sleep(3)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -136,13 +138,4 @@ if __name__ == "__main__":
         loop=asyncio.get_event_loop()
         )
 
-    async_crawler.start_crawler(100)
-
-    # import requests
-    # import json
-
-    # url = "https://movies.yahoo.com.tw/movieinfo_main.html/id=10522"
-    # doc = requests.get(url)
-    # result = get_page(doc.content)
-    # result = json.dumps(result, sort_keys=True, indent=4, ensure_ascii=False)
-    # print(result)
+    async_crawler.start_crawler(40, 10)
