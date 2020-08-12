@@ -109,17 +109,21 @@ class AsyncCrawler(BaseCrawler):
     def start_crawler(self, upper_limit):
         inputs_chunks = split_chunk([self.request_page("https://movies.yahoo.com.tw/movieinfo_main.html/id={}".format(i)) for i in range(1, upper_limit)], 100)
         pool = Pool(processes=self.process_num)
-        for inputs_chunk in inputs_chunks:
-            try:
-                done_response, pending = self.loop.run_until_complete(asyncio.wait(inputs_chunk))
-                all_page_dom = [response.result() for response in done_response]
-                _ = self.map(pool, get_page, all_page_dom)
-            except Exception as error:
-                logger.exception(error)
-        self.save()
-        self.loop.run_until_complete(self.session.close())
-        self.loop.close()
-        logger.info('Saved %s items', self.total_count)
+        try:
+            for inputs_chunk in inputs_chunks:
+                try:
+                    done_response, pending = self.loop.run_until_complete(asyncio.wait(inputs_chunk))
+                    all_page_dom = [response.result() for response in done_response]
+                    _ = self.map(pool, get_page, all_page_dom)
+                except Exception as error:
+                    logger.exception(error)
+        except KeyboardInterrupt as error:
+            pass
+        finally:
+            self.save()
+            self.loop.run_until_complete(self.session.close())
+            self.loop.close()
+            logger.info('Saved %s items', self.total_count)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -132,12 +136,12 @@ if __name__ == "__main__":
         loop=asyncio.get_event_loop()
         )
 
-    async_crawler.start_crawler(11000)
+    async_crawler.start_crawler(100)
 
     # import requests
     # import json
 
-    # url = "https://movies.yahoo.com.tw/movieinfo_main.html/id="
+    # url = "https://movies.yahoo.com.tw/movieinfo_main.html/id=10522"
     # doc = requests.get(url)
     # result = get_page(doc.content)
     # result = json.dumps(result, sort_keys=True, indent=4, ensure_ascii=False)
