@@ -5,16 +5,19 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from utils.async_requests_util import AsyncRequestUtil
 from utils.base_crawler import init_log, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
+from table import GlobalWifi 
 
 from bs4 import BeautifulSoup
 import argparse
 import asyncio
+import time
 
 site_name = 'globalwifi'
 main_page_url = "https://sim.globalwifi.com.tw/"
 
 logger = init_log(site_name=site_name)
-database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+# database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+database = init_database(fields=GlobalWifi, file_name=site_name)
 session = AsyncRequestUtil()
 
 def get_page(input):
@@ -75,6 +78,7 @@ class AsyncCrawler(BaseCrawler):
         self.loop.run_until_complete(self.session.close())
         self.loop.close()
         logger.info('Saved %s items', self.total_count)
+        time.sleep(3)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
