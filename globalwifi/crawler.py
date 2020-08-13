@@ -14,9 +14,9 @@ site_name = 'globalwifi'
 main_page_url = "https://sim.globalwifi.com.tw/"
 
 logger = init_log(site_name=site_name)
-# database = init_database(fields=GlobalWifi, file_name=site_name)
+database = init_database(fields=GlobalWifi, file_name=site_name)
 # database = init_database(fields=['title'], database_type=DataBaseType.CSV, file_name=site_name)
-database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+# database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
 session = RequestUtil()
 
 class Crawler(BaseCrawler):
@@ -69,7 +69,7 @@ class Crawler(BaseCrawler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=4)
+    parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=8)
     args = parser.parse_args()
     urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
     crawler = Crawler(process_num=args.processes, session=session)

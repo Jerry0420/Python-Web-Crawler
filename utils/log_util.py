@@ -25,5 +25,4 @@ def init_log(path=os.getcwd(), site_name=''):
 
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
-
     return logger

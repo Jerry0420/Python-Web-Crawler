@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=4)
     args = parser.parse_args()
 
-    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(5)]
+    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
     
     async_crawler = AsyncCrawler(
         process_num=args.processes,
