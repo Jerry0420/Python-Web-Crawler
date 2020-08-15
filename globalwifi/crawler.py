@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from utils.requests_util import RequestUtil
-from utils.base_crawler import init_log, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
+from utils.base_crawler import init_log, logging, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
 from table import GlobalWifi 
 
 from bs4 import BeautifulSoup
@@ -14,9 +14,10 @@ site_name = 'globalwifi'
 main_page_url = "https://sim.globalwifi.com.tw/"
 
 logger = init_log(site_name=site_name)
+
 database = init_database(fields=GlobalWifi, file_name=site_name)
 # database = init_database(fields=['title'], database_type=DataBaseType.CSV, file_name=site_name)
-# database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
 session = RequestUtil()
 
 class Crawler(BaseCrawler):

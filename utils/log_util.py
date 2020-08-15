@@ -2,6 +2,8 @@ import logging
 import os
 from datetime import datetime
 
+now_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
 def init_log(path=os.getcwd(), site_name=''):
     logging.captureWarnings(True)
     
@@ -19,7 +21,7 @@ def init_log(path=os.getcwd(), site_name=''):
 
     if not os.path.exists(path + '/logs'):
         os.makedirs(path + '/logs')
-    file_name = site_name + "_{:%Y-%m-%d_%H-%M-%S}".format(datetime.now()) + ".log"
+    file_name = site_name + "_{}".format(now_str) + ".log"
     file_handler = logging.FileHandler(path + '/logs/' + file_name, 'w', 'utf-8')
     file_handler.setFormatter(formatter)
 
