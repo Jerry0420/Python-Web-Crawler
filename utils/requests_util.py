@@ -5,7 +5,7 @@ import time
 from .proxies import get_proxy
 import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 class HTTPMethods(Enum):
     GET = "GET"
