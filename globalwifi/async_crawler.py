@@ -42,8 +42,8 @@ def get_page(input):
 
 class AsyncCrawler(BaseCrawler):
     
-    def __init__(self, process_num, session, loop):
-        super().__init__(process_num=process_num, session=session, loop=loop)
+    def __init__(self, process_num, site_name, session, loop):
+        super().__init__(process_num=process_num, site_name=site_name, session=session, loop=loop)
 
     async def request_page(self, info):
         next_info = info.next_info
@@ -54,7 +54,7 @@ class AsyncCrawler(BaseCrawler):
         return response, info
 
     def start_crawler(self, inputs):
-        self.__class__.init_database(fields=GlobalWifi, file_name=site_name)
+        self.init_database(fields=GlobalWifi)
         pool = Pool(processes=self.process_num)
         all_next_info = [
             self.request_page(
@@ -75,8 +75,7 @@ class AsyncCrawler(BaseCrawler):
                 break
         self.save()
         self.loop.run_until_complete(self.session.close())
-        self.loop.close()
-        change_log_path(site_name=site_name)
+        self.close()
         logger.info('Saved %s items', self.total_count)
 
 if __name__ == "__main__":
@@ -88,6 +87,7 @@ if __name__ == "__main__":
     
     async_crawler = AsyncCrawler(
         process_num=args.processes,
+        site_name=site_name,
         session=session,
         loop=asyncio.get_event_loop()
         )

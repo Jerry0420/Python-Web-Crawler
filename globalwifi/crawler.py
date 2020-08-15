@@ -23,8 +23,8 @@ session = RequestUtil()
 
 class Crawler(BaseCrawler):
 
-    def __init__(self, process_num, session):
-        super().__init__(process_num=process_num, session=session)
+    def __init__(self, process_num, site_name, session):
+        super().__init__(process_num=process_num, site_name=site_name, session=session)
 
     def get_page(self, url):
         document = self.session.get(url)
@@ -58,7 +58,7 @@ class Crawler(BaseCrawler):
         return items_all
 
     def start_crawler(self, inputs):
-        self.__class__.init_database(fields=GlobalWifi, file_name=site_name)
+        self.init_database(fields=GlobalWifi)
         pool = Pool(processes=self.process_num)
         try:
             all_next_info = self.map(pool, self.loop_page, inputs)
@@ -67,13 +67,13 @@ class Crawler(BaseCrawler):
         except Exception as error:
             logger.exception(error)
         finally:
-            change_log_path(site_name=site_name)
             self.save()
+            self.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=8)
     args = parser.parse_args()
     urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
-    crawler = Crawler(process_num=args.processes, session=session)
+    crawler = Crawler(process_num=args.processes, site_name=site_name, session=session)
     crawler.start_crawler(urls)

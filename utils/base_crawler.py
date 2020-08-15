@@ -21,18 +21,18 @@ class BaseCrawler:
 
     database = None
 
-    def __init__(self, process_num=4, session=None, loop=None):
+    def __init__(self, process_num=4, site_name=None, session=None, loop=None):
         self.process_num = process_num
         self.session = session
         self.collected_data = []
         self.retry_info = []
         self.total_count = 0
         self.loop = loop
+        self.site_name = site_name
 
-    @classmethod
-    def init_database(cls, fields=None, database_type=DataBaseType.DATABASE, path=os.getcwd(), file_name=''):
-        database = init_database(fields=fields, database_type=database_type, path=path, file_name=file_name)
-        cls.database = database
+    def init_database(self, fields=None, database_type=DataBaseType.DATABASE):
+        database = init_database(fields=fields, database_type=database_type, file_name=self.site_name)
+        self.__class__.database = database
 
     def append(self, data):
         self.collected_data.extend(data)
@@ -50,9 +50,12 @@ class BaseCrawler:
             json.dump(self.retry_info, f, ensure_ascii=False)
 
     def close(self):
-        self.loop.stop()
-        self.loop.run_forever()
-        self.loop.close()
+        if self.loop:
+            self.loop.stop()
+            self.loop.run_forever()
+            self.loop.close()
+            time.sleep(1)
+        change_log_path(site_name=self.site_name)
 
     def map(self, pool, function, inputs):
         all_next_info = []

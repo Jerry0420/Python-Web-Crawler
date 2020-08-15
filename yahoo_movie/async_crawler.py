@@ -19,7 +19,7 @@ main_page_url = "https://movies.yahoo.com.tw/index.html"
 
 logger = init_log(site_name=site_name)
 # database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
-database = init_database(fields=YahooMovie, file_name=site_name)
+# database = init_database(fields=YahooMovie, file_name=site_name)
 session = AsyncRequestUtil()
 
 def split_chunk(list, n=100):
@@ -93,23 +93,22 @@ def get_page(document):
     except Exception as error:
         logger.exception("Error occurred %s ", result['url'])
         return [], Info(current_info=None, next_info=None, retry_info=result['url'])
-    logger.info("Crawlered %s", result['url'])
+    logger.info("Crawled %s", result['url'])
     return [result]
 
 class AsyncCrawler(BaseCrawler):
     
-    database = database
-    
-    def __init__(self, process_num, session, loop):
-        super().__init__(process_num=process_num, session=session, loop=loop)
+    def __init__(self, process_num, site_name, session, loop):
+        super().__init__(process_num=process_num, site_name=site_name, session=session, loop=loop)
 
     async def request_page(self, url):
         response = await self.session.get(url)
         return response
 
     def start_crawler(self, upper_limit, chunk_size):
-        inputs_chunks = split_chunk([self.request_page("https://movies.yahoo.com.tw/movieinfo_main.html/id={}".format(i)) for i in range(1, upper_limit)], chunk_size)
+        self.init_database(fields=YahooMovie)
         pool = Pool(processes=self.process_num)
+        inputs_chunks = split_chunk([self.request_page("https://movies.yahoo.com.tw/movieinfo_main.html/id={}".format(i)) for i in range(1, upper_limit)], chunk_size)
         try:
             for inputs_chunk in inputs_chunks:
                 try:
@@ -123,9 +122,8 @@ class AsyncCrawler(BaseCrawler):
         finally:
             self.save()
             self.loop.run_until_complete(self.session.close())
-            self.loop.close()
+            self.close()
             logger.info('Saved %s items', self.total_count)
-            time.sleep(3)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -134,8 +132,9 @@ if __name__ == "__main__":
 
     async_crawler = AsyncCrawler(
         process_num=args.processes,
+        site_name=site_name,
         session=session,
         loop=asyncio.get_event_loop()
         )
 
-    async_crawler.start_crawler(40, 10)
+    async_crawler.start_crawler(500, 100)
