@@ -1,8 +1,46 @@
 import logging
 import os
 from datetime import datetime
+import fcntl
+from logging.handlers import RotatingFileHandler
+from shutil import copyfile
 
-now_str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+class MultiprocessingHandler(RotatingFileHandler):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__lock_pool = {}
+        self.__lock_filename = os.path.join(os.path.dirname(self.baseFilename, ), '.loglockfile')
+        assert self.mode == 'a'
+
+    def emit(self, record):
+        """
+        Emit a record.
+
+        Output the record to the file, catering for rollover as described
+        in doRollover().
+        """
+        f = None
+        try:
+            f = self.__lock_pool.get(os.getpid())
+            if f == None:
+                f = open(self.__lock_filename, 'wb')
+                self.__lock_pool[os.getpid()] = f
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            logging.FileHandler.emit(self, record)
+            if self.shouldRollover(record):
+                self.doRollover()
+
+        except Exception:
+            self.handleError(record)
+        finally:
+            if f:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+    def rotate(self, source, dest):
+        copyfile(source, dest)
+        with open(source, 'wb'):
+            pass
 
 def init_log(path=os.getcwd(), site_name=''):
     logging.captureWarnings(True)
@@ -21,10 +59,20 @@ def init_log(path=os.getcwd(), site_name=''):
 
     if not os.path.exists(path + '/logs'):
         os.makedirs(path + '/logs')
-    file_name = site_name + "_{}".format(now_str) + ".log"
-    file_handler = logging.FileHandler(path + '/logs/' + file_name, 'w', 'utf-8')
-    file_handler.setFormatter(formatter)
+    file_name = site_name + ".log"
+    file_path = path + '/logs/' + file_name
+    m_file_handler = MultiprocessingHandler(filename=file_path, maxBytes=1024 * 1024, backupCount=1)
+    m_file_handler.setFormatter(fmt=formatter)
 
     logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+    logger.addHandler(m_file_handler)
     return logger
+
+def change_log_path(path=os.getcwd(), site_name=''):
+    file_path = path + '/logs/' + site_name + ".log"
+    if os.path.isfile(file_path):
+        stat = os.stat(file_path)
+        date_time = datetime.fromtimestamp(stat.st_birthtime)
+        str_time = date_time.strftime("%Y-%m-%d_%H-%M-%S")
+        original_file_name = path + '/logs/' + site_name + "_{}".format(str_time) + ".log"
+        os.rename(file_path, original_file_name)

@@ -1,11 +1,12 @@
 from .database_util import init_database, DataBaseType
-from .log_util import init_log, logging
+from .log_util import init_log, logging, change_log_path
 
 from multiprocessing import Pool
 from enum import Enum
 import json
 from collections import namedtuple
 import time
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,11 @@ class BaseCrawler:
         self.retry_info = []
         self.total_count = 0
         self.loop = loop
+
+    @classmethod
+    def init_database(cls, fields=None, database_type=DataBaseType.DATABASE, path=os.getcwd(), file_name=''):
+        database = init_database(fields=fields, database_type=database_type, path=path, file_name=file_name)
+        cls.database = database
 
     def append(self, data):
         self.collected_data.extend(data)

@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from utils.requests_util import RequestUtil
-from utils.base_crawler import init_log, logging, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
+from utils.base_crawler import init_log, change_log_path, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
 from table import GlobalWifi 
 
 from bs4 import BeautifulSoup
@@ -15,14 +15,13 @@ main_page_url = "https://sim.globalwifi.com.tw/"
 
 logger = init_log(site_name=site_name)
 
-database = init_database(fields=GlobalWifi, file_name=site_name)
+# database = init_database(fields=GlobalWifi, file_name=site_name)
 # database = init_database(fields=['title'], database_type=DataBaseType.CSV, file_name=site_name)
-database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+# database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
+
 session = RequestUtil()
 
 class Crawler(BaseCrawler):
-
-    database = database
 
     def __init__(self, process_num, session):
         super().__init__(process_num=process_num, session=session)
@@ -59,6 +58,7 @@ class Crawler(BaseCrawler):
         return items_all
 
     def start_crawler(self, inputs):
+        self.__class__.init_database(fields=GlobalWifi, file_name=site_name)
         pool = Pool(processes=self.process_num)
         try:
             all_next_info = self.map(pool, self.loop_page, inputs)
@@ -66,6 +66,8 @@ class Crawler(BaseCrawler):
             logger.info('Saved %s items', self.total_count)
         except Exception as error:
             logger.exception(error)
+        finally:
+            change_log_path(site_name=site_name)
             self.save()
 
 if __name__ == "__main__":

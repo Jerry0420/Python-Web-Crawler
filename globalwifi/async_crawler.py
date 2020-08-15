@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 
 from utils.async_requests_util import AsyncRequestUtil
-from utils.base_crawler import init_log, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
+from utils.base_crawler import init_log, change_log_path, init_database, DataBaseType, Pool, Parser, Info, BaseCrawler
 from table import GlobalWifi 
 
 from bs4 import BeautifulSoup
@@ -17,7 +17,7 @@ main_page_url = "https://sim.globalwifi.com.tw/"
 
 logger = init_log(site_name=site_name)
 # database = init_database(database_type=DataBaseType.JSON, file_name=site_name)
-database = init_database(fields=GlobalWifi, file_name=site_name)
+# database = init_database(fields=GlobalWifi, file_name=site_name)
 session = AsyncRequestUtil()
 
 def get_page(input):
@@ -42,8 +42,6 @@ def get_page(input):
 
 class AsyncCrawler(BaseCrawler):
     
-    database = database
-    
     def __init__(self, process_num, session, loop):
         super().__init__(process_num=process_num, session=session, loop=loop)
 
@@ -56,6 +54,7 @@ class AsyncCrawler(BaseCrawler):
         return response, info
 
     def start_crawler(self, inputs):
+        self.__class__.init_database(fields=GlobalWifi, file_name=site_name)
         pool = Pool(processes=self.process_num)
         all_next_info = [
             self.request_page(
@@ -77,8 +76,8 @@ class AsyncCrawler(BaseCrawler):
         self.save()
         self.loop.run_until_complete(self.session.close())
         self.loop.close()
+        change_log_path(site_name=site_name)
         logger.info('Saved %s items', self.total_count)
-        time.sleep(3)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
