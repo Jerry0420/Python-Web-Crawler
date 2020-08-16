@@ -72,8 +72,6 @@ class AsyncRequestUtil:
 
     async def reset(self):
         await asyncio.sleep(self.sleep_seconds)
-        # await self.close()
-        # self.session = aiohttp.ClientSession()
         self.headers['user-agent'] = get_user_agent(self.os, self.browser)
         if self.proxy_countries:
             self.proxy = get_proxy(self.proxy_countries)

@@ -98,8 +98,8 @@ def get_page(document):
 
 class AsyncCrawler(BaseCrawler):
     
-    def __init__(self, process_num, site_name, session, loop):
-        super().__init__(process_num=process_num, site_name=site_name, session=session, loop=loop)
+    def __init__(self, process_num, site_name, session):
+        super().__init__(process_num=process_num, site_name=site_name, session=session)
 
     async def request_page(self, url):
         response = await self.session.get(url)
@@ -121,7 +121,6 @@ class AsyncCrawler(BaseCrawler):
             pass
         finally:
             self.save()
-            self.loop.run_until_complete(self.session.close())
             self.close()
             logger.info('Saved %s items', self.total_count)
 
@@ -133,8 +132,7 @@ if __name__ == "__main__":
     async_crawler = AsyncCrawler(
         process_num=args.processes,
         site_name=site_name,
-        session=session,
-        loop=asyncio.get_event_loop()
+        session=session
         )
 
-    async_crawler.start_crawler(500, 100)
+    async_crawler.start_crawler(11000, 100)

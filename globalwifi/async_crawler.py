@@ -42,8 +42,8 @@ def get_page(input):
 
 class AsyncCrawler(BaseCrawler):
     
-    def __init__(self, process_num, site_name, session, loop):
-        super().__init__(process_num=process_num, site_name=site_name, session=session, loop=loop)
+    def __init__(self, process_num, site_name, session):
+        super().__init__(process_num=process_num, site_name=site_name, session=session)
 
     async def request_page(self, info):
         next_info = info.next_info
@@ -74,7 +74,6 @@ class AsyncCrawler(BaseCrawler):
                 logger.exception(error)
                 break
         self.save()
-        self.loop.run_until_complete(self.session.close())
         self.close()
         logger.info('Saved %s items', self.total_count)
 
@@ -83,13 +82,12 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=4)
     args = parser.parse_args()
 
-    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
+    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(20)]
     
     async_crawler = AsyncCrawler(
         process_num=args.processes,
         site_name=site_name,
-        session=session,
-        loop=asyncio.get_event_loop()
+        session=session
         )
 
     async_crawler.start_crawler(urls)

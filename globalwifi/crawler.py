@@ -72,8 +72,8 @@ class Crawler(BaseCrawler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=8)
+    parser.add_argument("-c", "--processes", help="crawl with n processes", type=int, default=4)
     args = parser.parse_args()
-    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(10)]
+    urls = ['https://sim.globalwifi.com.tw/products' for _ in range(20)]
     crawler = Crawler(process_num=args.processes, site_name=site_name, session=session)
     crawler.start_crawler(urls)

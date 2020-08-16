@@ -1,5 +1,7 @@
 from .database_util import init_database, DataBaseType
 from .log_util import init_log, logging, change_log_path
+from .requests_util import RequestUtil
+from .async_requests_util import AsyncRequestUtil
 
 from multiprocessing import Pool
 from enum import Enum
@@ -7,6 +9,7 @@ import json
 from collections import namedtuple
 import time
 import os
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +24,14 @@ class BaseCrawler:
 
     database = None
 
-    def __init__(self, process_num=4, site_name=None, session=None, loop=None):
+    def __init__(self, process_num=4, site_name=None, session=None):
         self.process_num = process_num
         self.session = session
         self.collected_data = []
         self.retry_info = []
         self.total_count = 0
-        self.loop = loop
         self.site_name = site_name
+        self.loop = None if isinstance(self.session, RequestUtil) else asyncio.get_event_loop()
 
     def init_database(self, fields=None, database_type=DataBaseType.DATABASE):
         database = init_database(fields=fields, database_type=database_type, file_name=self.site_name)
@@ -51,6 +54,7 @@ class BaseCrawler:
 
     def close(self):
         if self.loop:
+            self.loop.run_until_complete(self.session.close())
             self.loop.stop()
             self.loop.run_forever()
             self.loop.close()
