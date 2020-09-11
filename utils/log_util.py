@@ -4,6 +4,7 @@ from datetime import datetime
 import fcntl
 from logging.handlers import RotatingFileHandler
 from shutil import copyfile
+import platform
 
 class MultiprocessingHandler(RotatingFileHandler):
 
@@ -68,11 +69,21 @@ def init_log(path=os.getcwd(), site_name=''):
     logger.addHandler(m_file_handler)
     return logger
 
+def creation_date(file_path):
+    if platform.system() == 'Windows':
+        return os.path.getctime(file_path)
+    else:
+        stat = os.stat(file_path)
+        try:
+            return stat.st_birthtime
+        except AttributeError:
+            return stat.st_ctime
+
 def change_log_path(path=os.getcwd(), site_name=''):
     file_path = path + '/logs/' + site_name + ".log"
     if os.path.isfile(file_path):
-        stat = os.stat(file_path)
-        date_time = datetime.fromtimestamp(stat.st_birthtime)
+        date_time = creation_date(file_path)
+        date_time = datetime.fromtimestamp(date_time)
         str_time = date_time.strftime("%Y-%m-%d_%H-%M-%S")
         original_file_name = path + '/logs/' + site_name + "_{}".format(str_time) + ".log"
         os.rename(file_path, original_file_name)
